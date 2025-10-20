@@ -1,0 +1,53 @@
+{
+  "name": "heavens-above",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts for scraping the Heavens Above website.",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "test:coverage": "npm run test",
+    "lint": "echo \"No linter configured\" && exit 0",
+    "format:check": "echo \"No formatter configured\" && exit 0",
+    "build": "echo \"No build process needed\" && exit 0",
+    "complexity-check": "echo \"No complexity checker configured\" && exit 0",
+    "duplication-check": "echo \"No duplication checker configured\" && exit 0",
+    "quality-report": "echo \"No quality reporter configured\" && exit 0",
+    "maintenance:cleanup": "node scripts/cleanup.js",
+    "maintenance:optimize-db": "node scripts/optimize-db.js",
+    "maintenance:clean-logs": "node scripts/clean-logs.js",
+    "health-check": "node scripts/health-check.js",
+    "generate-report": "node scripts/generate-report.js",
+    "update-satellite-data": "node run.js",
+    "generate-analytics": "node scripts/generate-analytics.js",
+    "backup:create": "node scripts/backup.js create",
+    "backup:upload": "node scripts/backup.js upload",
+    "backup:verify": "node scripts/backup.js verify",
+    "backup:cleanup": "node scripts/backup.js cleanup",
+    "docs:generate": "node scripts/generate-docs.js",
+    "docs:build": "node scripts/build-docs.js",
+    "docs:validate": "node scripts/validate-docs.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "request": "^2.88.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PKUPI/heavens-above.git"
+  },
+  "keywords": [
+    "Heavens Above",
+    "spider"
+  ],
+  "author": "Mimi <stevenjoezhang@gmail.com> (https://zhangshuqiao.org)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/PKUPI/heavens-above/issues"
+  },
+  "homepage": "https://github.com/PKUPI/heavens-above#readme",
+  "engines": {
+    "node": ">=12.10.0"
+  }
+}
