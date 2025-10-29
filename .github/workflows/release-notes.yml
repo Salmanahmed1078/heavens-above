@@ -16,6 +16,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          check-latest: true
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          elif [ -f package.json ]; then
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build data for release (optional)
+        run: |
+          if [ -f run.js ]; then
+            node run.js || true
+          fi
+
       - name: Release Drafter
         uses: release-drafter/release-drafter@v6
         with:
@@ -30,7 +50,8 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gh
           fi
 
-      - name: Upload data artifacts to release (if any)
+      - name: Upload data artifacts to release (if tag)
+        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
