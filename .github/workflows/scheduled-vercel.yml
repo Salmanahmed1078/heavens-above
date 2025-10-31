@@ -1,0 +1,65 @@
+name: Scheduled Daily Scrape and Deploy (Vercel)
+
+on:
+  schedule:
+    - cron: '45 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          check-latest: true
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          elif [ -f package.json ]; then
+            npm install --no-audit --no-fund
+          else
+            echo "No package.json found; skipping install."
+          fi
+
+      - name: Run scraper
+        run: |
+          if [ -f run.js ]; then
+            node run.js
+          else
+            echo "run.js not found; skipping."
+          fi
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Vercel deploy (production)
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          ARGS=(--prod --yes --token "$VERCEL_TOKEN")
+          if [ -n "$VERCEL_PROJECT_ID" ]; then
+            ARGS+=(--project "$VERCEL_PROJECT_ID")
+          fi
+          if [ -n "$VERCEL_ORG_ID" ]; then
+            ARGS+=(--scope "$VERCEL_ORG_ID")
+          fi
+          DEPLOY_URL=$(vercel deploy "${ARGS[@]}" \
+            2>&1 | tee /tmp/vercel-deploy.log | grep -Eo 'https://[^ ]+vercel\.app' | tail -n1)
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      # Deployment URL is captured in the previous step's output logs
+
+
