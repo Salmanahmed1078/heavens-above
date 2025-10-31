@@ -135,40 +135,45 @@ jobs:
           }
           echo "✅ Vercel authentication successful"
 
-      - name: Vercel deploy (production)
-        id: vercel
+      - name: Link Vercel project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          echo "Deploying to Vercel..."
-          ARGS=(--prod --yes --token "$VERCEL_TOKEN")
-          
-          # Provide project ID if available
+          echo "Linking Vercel project..."
           if [ -n "$VERCEL_PROJECT_ID" ]; then
-            ARGS+=(--project "$VERCEL_PROJECT_ID")
             echo "Using project ID: $VERCEL_PROJECT_ID"
+            # Pull project settings to create .vercel directory
+            if [ -n "$VERCEL_ORG_ID" ]; then
+              vercel link --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID" || {
+                echo "⚠️  Link failed, will try deployment without explicit linking"
+              }
+            else
+              vercel link --yes --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT_ID" || {
+                echo "⚠️  Link failed, will try deployment without explicit linking"
+              }
+            fi
           else
-            echo "⚠️  WARNING: VERCEL_PROJECT_ID not set. Vercel may create a new project."
+            echo "⚠️  VERCEL_PROJECT_ID not set. Will deploy to new project."
           fi
-          
-          # Provide scope if available (optional for personal accounts)
-          if [ -n "$VERCEL_ORG_ID" ]; then
-            ARGS+=(--scope "$VERCEL_ORG_ID")
-            echo "Using org ID: $VERCEL_ORG_ID"
-          fi
-          
+
+      - name: Vercel deploy (production)
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "Deploying to Vercel..."
           echo "Working directory: $(pwd)"
           echo "Public directory contents:"
           ls -la public/ || echo "public/ directory not found"
           echo ""
-          echo "Deploy command: vercel deploy ${ARGS[@]}"
-          echo ""
           
-          # Run deploy and capture both stdout and stderr
+          # Deploy with production flag
+          # If .vercel directory exists from link step, it will use that project
+          # Otherwise, Vercel will create a new project or use vercel.json config
           set +e  # Don't exit on error immediately
-          DEPLOY_OUTPUT=$(vercel deploy "${ARGS[@]}" 2>&1)
+          DEPLOY_OUTPUT=$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1)
           DEPLOY_EXIT_CODE=$?
           set -e  # Re-enable exit on error
           
