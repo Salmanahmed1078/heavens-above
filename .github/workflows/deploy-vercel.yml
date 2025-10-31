@@ -1,8 +1,8 @@
-name: Scheduled Daily Scrape and Deploy (Vercel)
+name: Deploy to Vercel
 
 on:
-  schedule:
-    - cron: '45 21 * * *'
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -31,15 +31,20 @@ jobs:
             echo "No package.json found; skipping install."
           fi
 
-      - name: Run scraper
+      - name: Build data
         run: |
           if [ -f run.js ]; then
             node run.js
-            echo "Scraper completed. Checking public/data..."
+            echo "Data build completed. Checking public/data..."
             ls -la public/data/ || echo "WARNING: public/data directory not found after run.js"
           else
-            echo "run.js not found; skipping."
+            echo "run.js not found; skipping data build."
           fi
+
+      - name: Include docs into public
+        run: |
+          mkdir -p public/docs
+          if [ -d docs ]; then rsync -a --delete docs/ public/docs/; fi
 
       - name: Verify public directory structure
         run: |
@@ -52,6 +57,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
 
+      - name: Show files to be deployed
+        run: |
+          echo "Files in public/ that will be deployed:"
+          find public -type f | head -20 || echo "No files found in public/"
+          echo ""
+          echo "Total size of public/:"
+          du -sh public/ || echo "public/ does not exist"
+
       - name: Vercel deploy (production)
         id: vercel
         env:
@@ -60,9 +73,11 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           ARGS=(--prod --yes --token "$VERCEL_TOKEN")
+          # Provide project ID if available
           if [ -n "$VERCEL_PROJECT_ID" ]; then
             ARGS+=(--project "$VERCEL_PROJECT_ID")
           fi
+          # Provide scope if available (optional for personal accounts)
           if [ -n "$VERCEL_ORG_ID" ]; then
             ARGS+=(--scope "$VERCEL_ORG_ID")
           fi
@@ -70,6 +85,7 @@ jobs:
             2>&1 | tee /tmp/vercel-deploy.log | grep -Eo 'https://[^ ]+vercel\.app' | tail -n1)
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      # Deployment URL is captured in the previous step's output logs
+      - name: Output deployment URL
+        run: echo "Vercel URL: ${{ steps.vercel.outputs.url }}"
 
 
