@@ -82,11 +82,23 @@ jobs:
     <ul class="file-list">
 EOF
               
-              # Add links to all markdown/html files
-              for file in docs-output/*.{md,html} 2>/dev/null; do
+              # Add links to all HTML files (prefer .html over .md)
+              for file in docs-output/*.html 2>/dev/null; do
                 if [ -f "$file" ]; then
                   filename=$(basename "$file")
-                  echo "      <li><a href=\"$filename\">$filename</a></li>" >> docs-output/index.html
+                  displayname=$(echo "$filename" | sed 's/\.html$//')
+                  echo "      <li><a href=\"$filename\">$displayname</a></li>" >> docs-output/index.html
+                fi
+              done
+              # Add links to markdown files that don't have HTML versions
+              for file in docs-output/*.md 2>/dev/null; do
+                if [ -f "$file" ]; then
+                  filename=$(basename "$file")
+                  htmlname="${filename%.md}.html"
+                  if [ ! -f "docs-output/$htmlname" ]; then
+                    displayname=$(echo "$filename" | sed 's/\.md$//')
+                    echo "      <li><a href=\"$filename\">$displayname</a> (Markdown)</li>" >> docs-output/index.html
+                  fi
                 fi
               done
               
@@ -107,6 +119,19 @@ EOF
             # Convert README.md to README.html if it exists
             if [ -f docs-output/README.md ]; then
               echo "Converting README.md to HTML..."
+              # First convert markdown to HTML content
+              MARKDOWN_CONTENT=$(cat docs-output/README.md)
+              HTML_CONTENT=$(echo "$MARKDOWN_CONTENT" | sed \
+                -e 's/^# \(.*\)/<h1>\1<\/h1>/' \
+                -e 's/^## \(.*\)/<h2>\1<\/h2>/' \
+                -e 's/^### \(.*\)/<h3>\1<\/h3>/' \
+                -e 's/^#### \(.*\)/<h4>\1<\/h4>/' \
+                -e 's/\*\*\([^*]*\)\*\*/<strong>\1<\/strong>/g' \
+                -e 's/`\([^`]*\)`/<code>\1<\/code>/g' \
+                -e 's/\[\([^\]]*\)\](\([^)]*\))/<a href="\2">\1<\/a>/g' \
+                -e 's/^\([^<].*\)$/<p>\1<\/p>/' \
+                || echo "$MARKDOWN_CONTENT")
+              
               cat > docs-output/README.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
@@ -153,8 +178,8 @@ EOF
     <a href="index.html">← Back to Documentation</a>
     <hr>
 EOF
-              # Basic markdown to HTML conversion (simple)
-              sed 's/^# \(.*\)/<h1>\1<\/h1>/; s/^## \(.*\)/<h2>\1<\/h2>/; s/^### \(.*\)/<h3>\1<\/h3>/; s/\*\*\(.*\)\*\*/<strong>\1<\/strong>/g; s/`\(.*\)`/<code>\1<\/code>/g' docs-output/README.md >> docs-output/README.html || cat docs-output/README.md >> docs-output/README.html
+              # Append converted HTML content
+              echo "$HTML_CONTENT" >> docs-output/README.html
               echo "  </div></body></html>" >> docs-output/README.html
               echo "✅ README.html created"
             fi
