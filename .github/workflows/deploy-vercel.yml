@@ -31,12 +31,27 @@ jobs:
             echo "No package.json found; skipping install."
           fi
 
-      - name: Build data
+      - name: Build data (with logging)
         run: |
+          export TZ=Asia/Karachi
           if [ -f run.js ]; then
-            node run.js
-            echo "Data build completed. Checking public/data..."
-            ls -la public/data/ || echo "WARNING: public/data directory not found after run.js"
+            set -o pipefail || true
+            echo "Starting data scrape at $(date)"
+            node run.js 2>&1 | tee scrape.log || { echo "WARNING: run.js exited with non-zero code"; }
+            echo "Data build completed at $(date). Checking public/data..."
+            if [ -d public/data ]; then
+              echo "✓ public/data directory exists"
+              echo "Files in public/data:"
+              ls -lah public/data/ | head -20
+              echo "Total files: $(find public/data -type f | wc -l)"
+              echo "Total size: $(du -sh public/data | cut -f1)"
+            else
+              echo "✗ WARNING: public/data directory not found after run.js"
+            fi
+            if [ -f scrape.log ]; then
+              echo "Scrape log tail (last 50 lines):"
+              tail -50 scrape.log || true
+            fi
           else
             echo "run.js not found; skipping data build."
           fi
@@ -53,6 +68,37 @@ jobs:
           echo ""
           echo "Contents of public/data/:"
           ls -la public/data/ 2>/dev/null || echo "public/data/ directory does not exist"
+
+      - name: Upload scrape artifacts for debugging
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-output-${{ github.run_number }}
+          path: |
+            scrape.log
+            public/data/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Commit and push data to GitHub
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -d public/data ] && [ -n "$(ls -A public/data 2>/dev/null)" ]; then
+            echo "Committing scraped data to repository..."
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add public/data/ || true
+            if git diff --staged --quiet; then
+              echo "No changes to commit in public/data/"
+            else
+              git commit -m "Update scraped data [skip ci]" || echo "No changes to commit"
+              git push origin main || echo "Push failed or no changes"
+            fi
+          else
+            echo "No data files to commit (public/data/ is empty or missing)"
+          fi
 
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
