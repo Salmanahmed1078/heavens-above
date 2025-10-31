@@ -43,44 +43,31 @@ jobs:
             # Create a proper index.html
             if [ ! -f docs-output/index.html ]; then
               echo "Creating index.html..."
-              cat > docs-output/index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation - Heavens Above</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    h1 { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }
-    .file-list { list-style: none; padding: 0; }
-    .file-list li { padding: 10px; margin: 5px 0; background: #f9f9f9; border-radius: 4px; }
-    .file-list a { color: #007acc; text-decoration: none; font-weight: 500; }
-    .file-list a:hover { text-decoration: underline; }
-    .meta { color: #666; font-size: 0.9em; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>📚 Documentation</h1>
-    <p>Welcome to the Heavens Above project documentation.</p>
-    
-    <h2>Available Documents</h2>
-    <ul class="file-list">
-EOF
+              {
+                echo '<!DOCTYPE html>'
+                echo '<html lang="en">'
+                echo '<head>'
+                echo '  <meta charset="UTF-8">'
+                echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">'
+                echo '  <title>Documentation - Heavens Above</title>'
+                echo '  <style>'
+                echo '    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f5f5; }'
+                echo '    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }'
+                echo '    h1 { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }'
+                echo '    .file-list { list-style: none; padding: 0; }'
+                echo '    .file-list li { padding: 10px; margin: 5px 0; background: #f9f9f9; border-radius: 4px; }'
+                echo '    .file-list a { color: #007acc; text-decoration: none; font-weight: 500; }'
+                echo '    .file-list a:hover { text-decoration: underline; }'
+                echo '    .meta { color: #666; font-size: 0.9em; margin-top: 20px; }'
+                echo '  </style>'
+                echo '</head>'
+                echo '<body>'
+                echo '  <div class="container">'
+                echo '    <h1>📚 Documentation</h1>'
+                echo '    <p>Welcome to the Heavens Above project documentation.</p>'
+                echo '    <h2>Available Documents</h2>'
+                echo '    <ul class="file-list">'
+              } > docs-output/index.html
               
               # Add links to all HTML files (prefer .html over .md)
               for file in docs-output/*.html 2>/dev/null; do
@@ -102,17 +89,16 @@ EOF
                 fi
               done
               
-              cat >> docs-output/index.html << 'EOF'
-    </ul>
-    
-    <div class="meta">
-      <p><strong>Heavens Above</strong> - Astronomical data scraping and visualization</p>
-      <p>Documentation deployed via GitHub Actions</p>
-    </div>
-  </div>
-</body>
-</html>
-EOF
+              {
+                echo '    </ul>'
+                echo '    <div class="meta">'
+                echo '      <p><strong>Heavens Above</strong> - Astronomical data scraping and visualization</p>'
+                echo '      <p>Documentation deployed via GitHub Actions</p>'
+                echo '    </div>'
+                echo '  </div>'
+                echo '</body>'
+                echo '</html>'
+              } >> docs-output/index.html
               echo "✅ index.html created"
             fi
             
@@ -132,55 +118,35 @@ EOF
                 -e 's/^\([^<].*\)$/<p>\1<\/p>/' \
                 || echo "$MARKDOWN_CONTENT")
               
-              cat > docs-output/README.html << 'EOF'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>README - Documentation</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.6;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    pre {
-      background: #f4f4f4;
-      padding: 15px;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-    code {
-      background: #f4f4f4;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Monaco', 'Courier New', monospace;
-    }
-    a {
-      color: #007acc;
-      text-decoration: none;
-    }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <a href="index.html">← Back to Documentation</a>
-    <hr>
-EOF
+              {
+                echo '<!DOCTYPE html>'
+                echo '<html lang="en">'
+                echo '<head>'
+                echo '  <meta charset="UTF-8">'
+                echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">'
+                echo '  <title>README - Documentation</title>'
+                echo '  <style>'
+                echo '    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }'
+                echo '    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }'
+                echo '    pre { background: #f4f4f4; padding: 15px; border-radius: 4px; overflow-x: auto; }'
+                echo '    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: "Monaco", "Courier New", monospace; }'
+                echo '    a { color: #007acc; text-decoration: none; }'
+                echo '    a:hover { text-decoration: underline; }'
+                echo '    h1, h2, h3, h4 { color: #333; }'
+                echo '  </style>'
+                echo '</head>'
+                echo '<body>'
+                echo '  <div class="container">'
+                echo '    <a href="index.html">← Back to Documentation</a>'
+                echo '    <hr>'
+              } > docs-output/README.html
               # Append converted HTML content
               echo "$HTML_CONTENT" >> docs-output/README.html
-              echo "  </div></body></html>" >> docs-output/README.html
+              {
+                echo '  </div>'
+                echo '</body>'
+                echo '</html>'
+              } >> docs-output/README.html
               echo "✅ README.html created"
             fi
             
@@ -188,20 +154,20 @@ EOF
           else
             echo "⚠️  No docs/ directory found. Creating placeholder."
             echo "# Documentation" > docs-output/README.md
-            cat > docs-output/index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation</title>
-</head>
-<body>
-  <h1>Documentation</h1>
-  <p>Documentation is being set up. Please add files to the <code>docs/</code> directory.</p>
-</body>
-</html>
-EOF
+            {
+              echo '<!DOCTYPE html>'
+              echo '<html lang="en">'
+              echo '<head>'
+              echo '  <meta charset="UTF-8">'
+              echo '  <meta name="viewport" content="width=device-width, initial-scale=1.0">'
+              echo '  <title>Documentation</title>'
+              echo '</head>'
+              echo '<body>'
+              echo '  <h1>Documentation</h1>'
+              echo '  <p>Documentation is being set up. Please add files to the <code>docs/</code> directory.</p>'
+              echo '</body>'
+              echo '</html>'
+            } > docs-output/index.html
           fi
           
           echo ""
