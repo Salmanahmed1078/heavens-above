@@ -1,8 +1,6 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -16,6 +14,7 @@ concurrency:
 
 jobs:
   build:
+    if: false # Disabled: Vercel is the active CD target now
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -49,6 +48,7 @@ jobs:
           path: public
 
   deploy:
+    if: false # Disabled: Vercel is the active CD target now
     needs: build
     runs-on: ubuntu-latest
     environment:
