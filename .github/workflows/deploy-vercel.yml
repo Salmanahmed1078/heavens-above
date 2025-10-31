@@ -203,6 +203,5 @@ jobs:
           fi
 
       - name: Output deployment URL
-        run: echo "Vercel URL: ${{ steps.vercel.outputs.url }}"
-
-
+        run: |
+          echo "Vercel URL: ${{ steps.vercel.outputs.url }}"
