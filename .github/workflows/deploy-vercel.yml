@@ -201,7 +201,3 @@ jobs:
             echo "⚠️  Could not extract deployment URL from output, but deploy may have succeeded"
             echo "Check Vercel dashboard for deployment status"
           fi
-
-      - name: Output deployment URL
-        run: |
-          echo "Vercel URL: ${{ steps.vercel.outputs.url }}"
