@@ -70,7 +70,8 @@ jobs:
               } > docs-output/index.html
               
               # Add links to all HTML files (prefer .html over .md)
-              for file in docs-output/*.html 2>/dev/null; do
+              shopt -s nullglob 2>/dev/null || true
+              for file in docs-output/*.html; do
                 if [ -f "$file" ]; then
                   filename=$(basename "$file")
                   displayname=$(echo "$filename" | sed 's/\.html$//')
@@ -78,7 +79,7 @@ jobs:
                 fi
               done
               # Add links to markdown files that don't have HTML versions
-              for file in docs-output/*.md 2>/dev/null; do
+              for file in docs-output/*.md; do
                 if [ -f "$file" ]; then
                   filename=$(basename "$file")
                   htmlname="${filename%.md}.html"
@@ -88,6 +89,7 @@ jobs:
                   fi
                 fi
               done
+              shopt -u nullglob 2>/dev/null || true
               
               {
                 echo '    </ul>'
