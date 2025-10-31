@@ -60,9 +60,6 @@ jobs:
             2>&1 | tee /tmp/vercel-deploy.log | grep -Eo 'https://[^ ]+vercel\.app' | tail -n1)
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - name: Output deployment URL
-        env:
-          VERCEL_URL: ${{ steps.vercel.outputs.url }}
-        run: echo "Vercel URL: $VERCEL_URL"
+      # Deployment URL is captured in the previous step's output logs
 
 
