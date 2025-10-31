@@ -61,6 +61,8 @@ jobs:
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Output deployment URL
-        run: echo "Vercel URL: ${{ steps.vercel.outputs.url }}"
+        env:
+          VERCEL_URL: ${{ steps.vercel.outputs.url }}
+        run: echo "Vercel URL: $VERCEL_URL"
 
 
