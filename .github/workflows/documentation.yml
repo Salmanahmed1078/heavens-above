@@ -1,4 +1,4 @@
-name: Documentation Build and Publish
+name: Documentation Build and Publish to GitHub Pages
 
 on:
   push:
@@ -8,51 +8,69 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages-docs
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy-docs:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure public/docs exists
-        run: |
-          mkdir -p public/docs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
       - name: Build docs (Jekyll if configured)
         run: |
+          mkdir -p docs-output
           if [ -f docs/_config.yml ] || [ -f docs/Gemfile ]; then
             echo "Jekyll configuration detected; building with Jekyll."
             sudo apt-get update && sudo apt-get install -y ruby-full build-essential zlib1g-dev
             gem install bundler jekyll
             (cd docs && bundle init >/dev/null 2>&1 || true)
-            (cd docs && jekyll build -s . -d ../public/docs)
+            (cd docs && jekyll build -s . -d ../docs-output)
+            echo "✅ Jekyll build completed"
+          elif [ -d docs ]; then
+            echo "No Jekyll config; copying raw docs directory."
+            rsync -a --delete docs/ docs-output/
+            # Create index.html if it doesn't exist
+            if [ ! -f docs-output/index.html ] && [ -f docs-output/README.md ]; then
+              echo "Creating index.html from README.md"
+              # Simple markdown to HTML conversion or redirect
+              echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=README.html"><title>Documentation</title></head><body><p><a href="README.html">Redirect to README</a></p></body></html>' > docs-output/index.html || true
+            fi
+            echo "✅ Raw docs copied"
           else
-            echo "No Jekyll config; publishing raw docs directory."
-            rsync -a --delete docs/ public/docs/
+            echo "⚠️  No docs/ directory found. Creating placeholder."
+            echo "# Documentation" > docs-output/README.md
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Documentation</title></head><body><h1>Documentation</h1><p>Documentation is being set up.</p></body></html>' > docs-output/index.html
           fi
+          
+          echo "Contents of docs-output:"
+          ls -la docs-output/ || echo "docs-output directory not created"
+          echo ""
+          echo "Total files in docs-output:"
+          find docs-output -type f | wc -l
 
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-output
 
-      - name: Deploy docs to Vercel (production)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          ARGS=(--prod --yes --token "$VERCEL_TOKEN")
-          if [ -n "$VERCEL_PROJECT_ID" ]; then
-            ARGS+=(--project "$VERCEL_PROJECT_ID")
-          fi
-          if [ -n "$VERCEL_ORG_ID" ]; then
-            ARGS+=(--scope "$VERCEL_ORG_ID")
-          fi
-          vercel deploy "${ARGS[@]}"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
 
